@@ -124,11 +124,7 @@ export default function AdminPage() {
         body: JSON.stringify({ query: search.trim() }),
       });
       const data = await res.json();
-      if (Array.isArray(data)) {
-        setContacts(data);
-      } else {
-        setListError(data.error || "Search failed.");
-      }
+      setContacts(Array.isArray(data) ? data : []);
     } catch {
       setListError("Search failed.");
     } finally {
