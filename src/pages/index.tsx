@@ -125,7 +125,17 @@ export default function HomePage() {
   return (
     <>
       <Head>
-        <title>BMB VCF · Command Center</title>
+        <title>BMB VCF · Join the Directory</title>
+        <meta name="description" content="Register your number to be added to the community VCF." />
+        <meta property="og:title" content="BMB VCF · Join the Directory" />
+        <meta property="og:description" content="Register your number to be added to the community VCF." />
+        <meta property="og:image" content="https://bmb-vcf.zone.id/bmbtech.png" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://bmb-vcf.zone.id" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="BMB VCF · Join the Directory" />
+        <meta name="twitter:description" content="Register your number to be added to the community VCF." />
+        <meta name="twitter:image" content="https://bmb-vcf.zone.id/bmbtech.png" />
       </Head>
       {showSplash && <SplashScreen onGetStarted={() => setShowSplash(false)} />}
       <div className="page">
