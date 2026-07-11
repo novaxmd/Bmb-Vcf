@@ -303,8 +303,8 @@ export default function AdminPage() {
       <>
         <Head>
           <title>Admin Login · BMB VCF</title>
-          <meta property="og:title" content="Admin Login · BMB VCF" />
-          <meta property="og:image" content="https://bmb-vcf.zone.id/bmbtech.png" />
+          <meta property="og:title" content="Admin Login · Bmb Vcf" />
+          <meta property="og:image" content="https://bmb-vcf.zone.id/og-image.jpg" />
         </Head>
         <div className="page">
           <TopBar title="BMB VCF" />
@@ -361,9 +361,9 @@ export default function AdminPage() {
   return (
     <>
       <Head>
-        <title>Command Center · BMB VCF</title>
-        <meta property="og:title" content="Command Center · BMB VCF" />
-        <meta property="og:image" content="https://bmb-vcf.zone.id/bmbtech.png" />
+        <title>Command Center · Bmb Vcf</title>
+        <meta property="og:title" content="Command Center · Bmb Vcf" />
+        <meta property="og:image" content="https://bmb-vcf.zone.id/og-image.jpg" />
       </Head>
       <div className="page">
         <TopBar title="BMB VCF" />
