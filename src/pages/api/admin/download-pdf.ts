@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import PDFDocument from "pdfkit";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import { supabaseAdmin } from "@/lib/supabaseServer";
 import { getTokenFromRequest, verifyAdminToken } from "@/lib/adminAuth";
 
@@ -24,48 +25,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: "No contacts found" });
     }
 
+    const contacts = data as { name: string | null; phone: string }[];
+
+    // jsPDF has no external font-file dependency at runtime, unlike pdfkit,
+    // which makes it reliable inside Vercel's serverless environment.
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.text("BMB VCF - Contacts List", 297.5, 50, { align: "center" });
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 545, 70, { align: "right" });
+    doc.text(`Total contacts: ${contacts.length}`, 50, 70);
+
+    autoTable(doc, {
+      startY: 90,
+      head: [["#", "Name", "Phone Number"]],
+      body: contacts.map((c, i) => [String(i + 1), c.name || "No name", c.phone || "No phone"]),
+      headStyles: { fillColor: [20, 40, 20], textColor: [255, 255, 255] },
+      styles: { fontSize: 10, cellPadding: 6 },
+      alternateRowStyles: { fillColor: [245, 250, 245] },
+      didDrawPage: () => {
+        const pageCount = doc.getNumberOfPages();
+        const pageCurrent = doc.getCurrentPageInfo().pageNumber;
+        doc.setFontSize(8);
+        doc.text(
+          `Page ${pageCurrent} of ${pageCount}`,
+          297.5,
+          doc.internal.pageSize.getHeight() - 20,
+          { align: "center" }
+        );
+      },
+    });
+
+    const pdfBuffer = Buffer.from(doc.output("arraybuffer"));
+
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=contacts.pdf");
-
-    const doc = new PDFDocument({ margin: 50 });
-    doc.pipe(res);
-
-    doc.fontSize(24).font("Helvetica-Bold").text("BMB VCF - Contacts List", { align: "center" });
-    doc.moveDown();
-    doc.fontSize(10).font("Helvetica").text(`Generated: ${new Date().toLocaleString()}`, {
-      align: "right",
-    });
-    doc.moveDown(2);
-
-    doc
-      .fontSize(12)
-      .font("Helvetica-Bold")
-      .text("#", 50, doc.y, { continued: true })
-      .text("Name", 100, doc.y, { continued: true })
-      .text("Phone Number", 300, doc.y);
-    doc.moveDown();
-    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-    doc.moveDown();
-
-    (data as { name: string | null; phone: string }[]).forEach((contact, index) => {
-      doc
-        .fontSize(11)
-        .font("Helvetica")
-        .text(`${index + 1}`, 50, doc.y, { continued: true })
-        .text(contact.name || "No name", 100, doc.y, { continued: true })
-        .text(contact.phone || "No phone", 300, doc.y);
-      doc.moveDown(0.8);
-    });
-
-    const pageCount = doc.bufferedPageRange().count;
-    for (let i = 0; i < pageCount; i++) {
-      doc.switchToPage(i);
-      doc.fontSize(8).text(`Page ${i + 1} of ${pageCount}`, 0, doc.page.height - 30, {
-        align: "center",
-      });
-    }
-
-    doc.end();
+    return res.status(200).send(pdfBuffer);
   } catch (err) {
     console.error(err);
     if (!res.headersSent) res.status(500).json({ error: "Failed to generate PDF" });
