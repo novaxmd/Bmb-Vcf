@@ -303,6 +303,8 @@ export default function AdminPage() {
       <>
         <Head>
           <title>Admin Login · BMB VCF</title>
+          <meta property="og:title" content="Admin Login · BMB VCF" />
+          <meta property="og:image" content="https://bmb-vcf.zone.id/bmbtech.png" />
         </Head>
         <div className="page">
           <TopBar title="BMB VCF" />
@@ -360,6 +362,8 @@ export default function AdminPage() {
     <>
       <Head>
         <title>Command Center · BMB VCF</title>
+        <meta property="og:title" content="Command Center · BMB VCF" />
+        <meta property="og:image" content="https://bmb-vcf.zone.id/bmbtech.png" />
       </Head>
       <div className="page">
         <TopBar title="BMB VCF" />
