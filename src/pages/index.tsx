@@ -141,8 +141,8 @@ export default function HomePage() {
       <div className="page">
         <TopBar title="BMB VCF" />
 
-        <div className="section-title">Join the Directory</div>
-        <div className="section-subtitle">Register your number to be added to the community VCF.</div>
+        <div className="section-title">Get more views for your status</div>
+        <div className="section-subtitle">Register your number to be added to the community vcf contact.</div>
 
         <div className="stats-grid">
           <div className="stat-card">
