@@ -125,24 +125,26 @@ export default function HomePage() {
   return (
     <>
       <Head>
-        <title>BMB VCF · Join the Directory</title>
-        <meta name="description" content="Register your number to be added to the community VCF." />
+        <title>Bmb Vcf · Join the Directory</title>
+        <meta name="description" content="Register your number to be added to the community Vcf." />
         <meta property="og:title" content="BMB VCF · Join the Directory" />
-        <meta property="og:description" content="Register your number to be added to the community VCF." />
-        <meta property="og:image" content="https://bmb-vcf.zone.id/bmbtech.png" />
+        <meta property="og:description" content="Register your number to be added to the community Vcf." />
+        <meta property="og:image" content="https://bmb-vcf.zone.id/og-image.jpg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://bmb-vcf.zone.id" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="BMB VCF · Join the Directory" />
+        <meta name="twitter:title" content="Bmb Vcf · Join the Directory" />
         <meta name="twitter:description" content="Register your number to be added to the community VCF." />
-        <meta name="twitter:image" content="https://bmb-vcf.zone.id/bmbtech.png" />
+        <meta name="twitter:image" content="https://bmb-vcf.zone.id/og-image.jpg" />
       </Head>
       {showSplash && <SplashScreen onGetStarted={() => setShowSplash(false)} />}
       <div className="page">
-        <TopBar title="BMB VCF" />
+        <TopBar title="Bmb Vcf" />
 
-        <div className="section-title">Get more views for your status</div>
-        <div className="section-subtitle">Register your number to be added to the community vcf contact.</div>
+        <div className="section-title">Join the Directory</div>
+        <div className="section-subtitle">Register your number to be added to the community VCF.</div>
 
         <div className="stats-grid">
           <div className="stat-card">
@@ -232,7 +234,7 @@ export default function HomePage() {
               <i className="fab fa-whatsapp" /> Channel
             </a>
             <a
-              href="https://www.youtube.com/@denictz"
+              href="https://www.youtube.com/@bmbtech"
               target="_blank"
               rel="noreferrer"
               className="social-item"
@@ -241,7 +243,7 @@ export default function HomePage() {
             </a>
           </div>
           <hr />
-          <div className="footer-light">BMB TECH · 2026</div>
+          <div className="footer-light">Bmb Tech · 2026</div>
         </div>
       </div>
 
