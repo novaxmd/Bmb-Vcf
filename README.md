@@ -1,5 +1,8 @@
 # BMB VCF — Command Center
 
+![Logo](./public/logo.png)
+
+
 A Next.js + TypeScript rewrite of the BMB VCF contact registration tool, with a
 password-gated admin dashboard styled after a dark-purple "Command Center" UI.
 
