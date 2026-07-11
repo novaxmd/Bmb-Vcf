@@ -232,7 +232,7 @@ export default function HomePage() {
               <i className="fab fa-whatsapp" /> Channel
             </a>
             <a
-              href="https://www.youtube.com/@bmb-tech"
+              href="https://www.youtube.com/@denictz"
               target="_blank"
               rel="noreferrer"
               className="social-item"
