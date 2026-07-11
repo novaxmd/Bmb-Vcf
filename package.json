@@ -1,7 +1,7 @@
 {
   "name": "bmb-vcf",
   "version": "2.0.0",
-  "description": "Bmb Tech Vcf- Contact Registration",
+  "description": "BMB VCF - Contact registration & admin dashboard",
   "private": true,
   "scripts": {
     "dev": "next dev",
