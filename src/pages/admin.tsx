@@ -249,7 +249,10 @@ export default function AdminPage() {
     setView("dashboard");
   };
 
+  const [downloadingKind, setDownloadingKind] = useState<"vcf" | "pdf" | null>(null);
+
   const handleDownload = async (kind: "vcf" | "pdf") => {
+    setDownloadingKind(kind);
     const token = getAdminToken();
     const url = kind === "vcf" ? "/api/admin/download-vcf" : "/api/admin/download-pdf";
     try {
@@ -270,8 +273,11 @@ export default function AdminPage() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
+      showToast(kind === "vcf" ? "VCF file downloaded." : "PDF file downloaded.", "success");
     } catch {
       showToast("Download failed. Please try again.", "error");
+    } finally {
+      setDownloadingKind(null);
     }
   };
 
@@ -802,11 +808,25 @@ export default function AdminPage() {
                 <i className="fas fa-address-book" /> View Contacts
               </button>
               <div className="btn-group" style={{ marginTop: 10 }}>
-                <button className="btn btn-secondary" onClick={() => handleDownload("vcf")}>
-                  <i className="fas fa-file-arrow-down" /> Download VCF
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => handleDownload("vcf")}
+                  disabled={downloadingKind !== null}
+                >
+                  {downloadingKind === "vcf" ? (
+                    <span className="spinner" />
+                  ) : (
+                    <i className="fas fa-file-arrow-down" />
+                  )}{" "}
+                  Download VCF
                 </button>
-                <button className="btn btn-secondary" onClick={() => handleDownload("pdf")}>
-                  <i className="fas fa-file-pdf" /> Download PDF
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => handleDownload("pdf")}
+                  disabled={downloadingKind !== null}
+                >
+                  {downloadingKind === "pdf" ? <span className="spinner" /> : <i className="fas fa-file-pdf" />}{" "}
+                  Download PDF
                 </button>
               </div>
               <div className="btn-group" style={{ marginTop: 10 }}>
