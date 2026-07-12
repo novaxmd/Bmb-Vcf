@@ -32,6 +32,12 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
 
+  // Forgot password (invited admins only)
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSubmitting, setForgotSubmitting] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState("");
+
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [listError, setListError] = useState("");
@@ -206,6 +212,29 @@ export default function AdminPage() {
       setLoginError("Network error. Try again.");
     } finally {
       setLoggingIn(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    const trimmed = forgotEmail.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setForgotMessage("Enter a valid email address.");
+      return;
+    }
+    setForgotSubmitting(true);
+    setForgotMessage("");
+    try {
+      const res = await fetch("/api/admin/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      const data = await res.json();
+      setForgotMessage(data.message || "If that email is registered as an admin, a reset link has been sent.");
+    } catch {
+      setForgotMessage("Network error. Please try again.");
+    } finally {
+      setForgotSubmitting(false);
     }
   };
 
@@ -460,8 +489,61 @@ export default function AdminPage() {
                 </>
               )}
             </button>
+            <button
+              className="btn btn-ghost-purple btn-block"
+              style={{ marginTop: 10, fontSize: "0.8rem" }}
+              onClick={() => {
+                setShowForgotPassword(true);
+                setForgotEmail("");
+                setForgotMessage("");
+              }}
+            >
+              Forgot password?
+            </button>
           </div>
         </div>
+
+        {showForgotPassword && (
+          <div className="app-modal-overlay" onClick={() => setShowForgotPassword(false)}>
+            <div className="app-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="app-modal-icon">
+                <i className="fas fa-key" />
+              </div>
+              <div className="section-title" style={{ fontSize: "1.05rem", marginBottom: 8 }}>
+                Reset Password
+              </div>
+              <div className="app-modal-message">
+                Enter the Gmail address linked to your admin account. If it's registered, we'll send you a reset link.
+              </div>
+              <input
+                type="email"
+                className="input-modern"
+                placeholder="Your Gmail address"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleForgotPassword()}
+                autoFocus
+              />
+              {forgotMessage && (
+                <div className="section-subtitle" style={{ marginBottom: 12 }}>
+                  {forgotMessage}
+                </div>
+              )}
+              <div className="btn-group">
+                <button className="btn btn-secondary btn-block" onClick={() => setShowForgotPassword(false)}>
+                  Close
+                </button>
+                <button
+                  className="btn btn-primary btn-block"
+                  onClick={handleForgotPassword}
+                  disabled={forgotSubmitting}
+                >
+                  {forgotSubmitting ? <span className="spinner" /> : <>Send Link</>}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </>
     );
   }
