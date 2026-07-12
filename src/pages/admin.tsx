@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import TopBar from "@/components/TopBar";
+import PasswordInput from "@/components/PasswordInput";
 import {
   saveAdminToken,
   getAdminToken,
@@ -471,9 +472,7 @@ export default function AdminPage() {
               autoFocus
               autoComplete="off"
             />
-            <input
-              type="password"
-              className="input-modern"
+            <PasswordInput
               placeholder="Admin password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
