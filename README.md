@@ -1,4 +1,4 @@
-# BMB VCF — Command Center
+# BMB VCF — Contacts Views Status 📱
 
 ![Logo](./public/logo.png)
 
