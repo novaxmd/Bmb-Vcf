@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import TopBar from "@/components/TopBar";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -81,16 +82,12 @@ export default function ResetPasswordPage() {
               <div className="section-subtitle">
                 Choose a new password for your BMB VCF admin account.
               </div>
-              <input
-                type="password"
-                className="input-modern"
+              <PasswordInput
                 placeholder="New password (min 8 characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <input
-                type="password"
-                className="input-modern"
+              <PasswordInput
                 placeholder="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
