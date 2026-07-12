@@ -7,12 +7,22 @@ import {
   clearAdminToken,
   adminFetch,
   isAdminSession,
+  getSessionRole,
 } from "@/lib/adminClient";
 import type { Contact } from "@/types";
+
+type AdminRow = {
+  id: string | number;
+  email: string;
+  username: string | null;
+  status: "pending" | "active";
+  created_at?: string;
+};
 
 export default function AdminPage() {
   const [unlocked, setUnlocked] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [role, setRole] = useState<"owner" | "admin" | null>(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -29,6 +39,13 @@ export default function AdminPage() {
   const [editPhone, setEditPhone] = useState("");
   const [rowBusyId, setRowBusyId] = useState<string | number | null>(null);
   const [dedupeRunning, setDedupeRunning] = useState(false);
+
+  // Owner-only: manage invited admins
+  const [admins, setAdmins] = useState<AdminRow[]>([]);
+  const [loadingAdmins, setLoadingAdmins] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [invitingAdmin, setInvitingAdmin] = useState(false);
+  const [adminBusyId, setAdminBusyId] = useState<string | number | null>(null);
 
   // Guards against stale/overlapping requests (list or search) leaving the
   // UI stuck on "Loading..." or showing outdated results.
@@ -56,7 +73,9 @@ export default function AdminPage() {
   useEffect(() => {
     if (isAdminSession()) {
       setUnlocked(true);
+      setRole(getSessionRole());
       fetchContacts("");
+      if (getSessionRole() === "owner") fetchAdmins();
     }
     setCheckingSession(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -166,9 +185,12 @@ export default function AdminPage() {
       if (data.success && data.token) {
         saveAdminToken(data.token);
         setUnlocked(true);
+        const newRole = getSessionRole();
+        setRole(newRole);
         setUsername("");
         setPassword("");
         fetchContacts("");
+        if (newRole === "owner") fetchAdmins();
       } else {
         setLoginError(data.error || "Incorrect username or password.");
       }
@@ -183,6 +205,8 @@ export default function AdminPage() {
     clearAdminToken();
     setUnlocked(false);
     setContacts([]);
+    setRole(null);
+    setAdmins([]);
   };
 
   const handleDownload = async (kind: "vcf" | "pdf") => {
@@ -273,6 +297,76 @@ export default function AdminPage() {
     });
   };
 
+  // --- Owner-only: manage invited admins ---
+
+  const fetchAdmins = async () => {
+    setLoadingAdmins(true);
+    try {
+      const res = await adminFetch("/api/admin/admins-list");
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && Array.isArray(data.admins)) {
+        setAdmins(data.admins);
+      }
+    } catch (err) {
+      console.error("fetchAdmins failed:", err);
+    } finally {
+      setLoadingAdmins(false);
+    }
+  };
+
+  const handleInvite = async () => {
+    const trimmed = inviteEmail.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      showToast("Enter a valid email address.", "error");
+      return;
+    }
+    setInvitingAdmin(true);
+    try {
+      const res = await adminFetch("/api/admin/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Invite sent to ${trimmed}.`, "success");
+        setInviteEmail("");
+        fetchAdmins();
+      } else {
+        showToast(data.error || "Failed to send invite.", "error");
+      }
+    } catch {
+      showToast("Network error while sending invite.", "error");
+    } finally {
+      setInvitingAdmin(false);
+    }
+  };
+
+  const handleRemoveAdmin = (admin: AdminRow) => {
+    askConfirm(`Remove admin access for ${admin.email}? This cannot be undone.`, async () => {
+      setConfirmModal(null);
+      setAdminBusyId(admin.id);
+      try {
+        const res = await adminFetch("/api/admin/remove-admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: admin.id }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setAdmins((prev) => prev.filter((a) => a.id !== admin.id));
+          showToast("Admin removed.", "success");
+        } else {
+          showToast(data.error || "Failed to remove admin.", "error");
+        }
+      } catch {
+        showToast("Network error while removing admin.", "error");
+      } finally {
+        setAdminBusyId(null);
+      }
+    });
+  };
+
   const handleDedupe = () => {
     askConfirm("Remove all repeated phone numbers, keeping the earliest entry for each?", async () => {
       setConfirmModal(null);
@@ -303,7 +397,7 @@ export default function AdminPage() {
       <>
         <Head>
           <title>Admin Login · BMB VCF</title>
-          <meta property="og:title" content="Admin Login · Bmb Vcf" />
+          <meta property="og:title" content="Admin Login · BMB VCF" />
           <meta property="og:image" content="https://bmb-vcf.zone.id/og-image.jpg" />
         </Head>
         <div className="page">
@@ -361,8 +455,8 @@ export default function AdminPage() {
   return (
     <>
       <Head>
-        <title>Command Center · Bmb Vcf</title>
-        <meta property="og:title" content="Command Center · Bmb Vcf" />
+        <title>Command Center · BMB VCF</title>
+        <meta property="og:title" content="Command Center · BMB VCF" />
         <meta property="og:image" content="https://bmb-vcf.zone.id/og-image.jpg" />
       </Head>
       <div className="page">
@@ -531,6 +625,80 @@ export default function AdminPage() {
             </div>
           )}
         </div>
+
+        {role === "owner" && (
+          <div className="card">
+            <div className="card-header">
+              <span className="card-label">Manage Admins</span>
+            </div>
+            <div className="phone-row" style={{ marginBottom: 12 }}>
+              <input
+                type="email"
+                className="input-modern"
+                style={{ marginBottom: 0 }}
+                placeholder="Admin's Gmail address"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleInvite()}
+              />
+              <button
+                className="btn btn-primary"
+                style={{ flex: "0 0 auto" }}
+                onClick={handleInvite}
+                disabled={invitingAdmin}
+              >
+                {invitingAdmin ? <span className="spinner" /> : <i className="fas fa-paper-plane" />}
+              </button>
+            </div>
+
+            {loadingAdmins ? (
+              <div className="section-subtitle" style={{ textAlign: "center" }}>
+                <span className="spinner" /> Loading...
+              </div>
+            ) : admins.length === 0 ? (
+              <div className="section-subtitle" style={{ textAlign: "center" }}>
+                No admins invited yet.
+              </div>
+            ) : (
+              <div className="roster-list">
+                {admins.map((a) => (
+                  <div className="roster-item" key={a.id}>
+                    <div className="roster-row" style={{ cursor: "default" }}>
+                      <span className="roster-info">
+                        <span className="roster-name">
+                          {a.username || "(pending setup)"}{" "}
+                          <span
+                            style={{
+                              fontSize: "0.7rem",
+                              color: a.status === "active" ? "var(--accent)" : "#e0b84c",
+                              marginLeft: 6,
+                            }}
+                          >
+                            {a.status === "active" ? "ACTIVE" : "PENDING"}
+                          </span>
+                        </span>
+                        <span className="roster-phone">{a.email}</span>
+                      </span>
+                      <button
+                        className="btn btn-secondary"
+                        style={{
+                          flex: "0 0 auto",
+                          borderColor: "#ff6b6b",
+                          color: "#ff6b6b",
+                          padding: "6px 10px",
+                        }}
+                        onClick={() => handleRemoveAdmin(a)}
+                        disabled={adminBusyId === a.id}
+                      >
+                        {adminBusyId === a.id ? <span className="spinner" /> : <i className="fas fa-trash" />}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {toast && (
           <div className={`app-toast app-toast-${toast.kind}`}>
