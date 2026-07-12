@@ -3,6 +3,8 @@
 ![Logo](./public/logo.png)
 
 
+[![VCF](https://img.shields.io/badge/VCF-vcf.bmbtech.site-yellow?style=for-the-badge)](https://vcf.bmbtech.site)
+
 A Next.js + TypeScript rewrite of the BMB VCF contact registration tool, with a
 password-gated admin dashboard styled after a dark-purple "Command Center" UI.
 
