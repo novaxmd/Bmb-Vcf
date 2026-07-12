@@ -44,8 +44,9 @@ export default function AdminPage() {
   const [rowBusyId, setRowBusyId] = useState<string | number | null>(null);
   const [dedupeRunning, setDedupeRunning] = useState(false);
 
-  // Owner-only: manage invited admins
+  // Team list: visible to everyone; only the owner can add/remove admins
   const [admins, setAdmins] = useState<AdminRow[]>([]);
+  const [ownerUsername, setOwnerUsername] = useState("");
   const [loadingAdmins, setLoadingAdmins] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [invitingAdmin, setInvitingAdmin] = useState(false);
@@ -80,7 +81,7 @@ export default function AdminPage() {
       setRole(getSessionRole());
       setLoggedInUsername(getAdminUsername() || "");
       fetchContacts("");
-      if (getSessionRole() === "owner") fetchAdmins();
+      fetchAdmins();
     }
     setCheckingSession(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -197,7 +198,7 @@ export default function AdminPage() {
         setUsername("");
         setPassword("");
         fetchContacts("");
-        if (newRole === "owner") fetchAdmins();
+        fetchAdmins();
       } else {
         setLoginError(data.error || "Incorrect username or password.");
       }
@@ -214,6 +215,7 @@ export default function AdminPage() {
     setContacts([]);
     setRole(null);
     setAdmins([]);
+    setOwnerUsername("");
     setLoggedInUsername("");
     setView("dashboard");
   };
@@ -311,10 +313,13 @@ export default function AdminPage() {
   const fetchAdmins = async () => {
     setLoadingAdmins(true);
     try {
-      const res = await adminFetch("/api/admin/admins-list");
+      const res = await adminFetch("/api/admin/team-list");
       const data = await res.json().catch(() => ({}));
-      if (res.ok && Array.isArray(data.admins)) {
-        setAdmins(data.admins);
+      if (res.ok) {
+        if (Array.isArray(data.admins)) setAdmins(data.admins);
+        if (data.owner && typeof data.owner.username === "string") {
+          setOwnerUsername(data.owner.username);
+        }
       }
     } catch (err) {
       console.error("fetchAdmins failed:", err);
@@ -647,12 +652,12 @@ export default function AdminPage() {
               )}
 
               <div className="roster-list">
-                {/* Owner is always shown first, from the current session */}
+                {/* Owner is shown from team-list.ts data (real username, visible to everyone) */}
                 <div className="roster-item">
                   <div className="roster-row" style={{ cursor: "default" }}>
                     <span className="roster-info">
                       <span className="roster-name">
-                        {role === "owner" ? loggedInUsername || "Owner" : "Owner"}{" "}
+                        {role === "owner" ? loggedInUsername || ownerUsername || "Owner" : ownerUsername || "Owner"}{" "}
                         <span style={{ fontSize: "0.7rem", color: "var(--accent)", marginLeft: 6 }}>
                           OWNER
                         </span>
@@ -662,30 +667,30 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {role === "owner" &&
-                  (loadingAdmins ? (
-                    <div className="section-subtitle" style={{ textAlign: "center", padding: "10px 0" }}>
-                      <span className="spinner" /> Loading admins...
-                    </div>
-                  ) : (
-                    admins.map((a) => (
-                      <div className="roster-item" key={a.id}>
-                        <div className="roster-row" style={{ cursor: "default" }}>
-                          <span className="roster-info">
-                            <span className="roster-name">
-                              {a.username || "(pending setup)"}{" "}
-                              <span
-                                style={{
-                                  fontSize: "0.7rem",
-                                  color: a.status === "active" ? "var(--accent)" : "#e0b84c",
-                                  marginLeft: 6,
-                                }}
-                              >
-                                {a.status === "active" ? "ACTIVE" : "PENDING"}
-                              </span>
+                {loadingAdmins ? (
+                  <div className="section-subtitle" style={{ textAlign: "center", padding: "10px 0" }}>
+                    <span className="spinner" /> Loading admins...
+                  </div>
+                ) : (
+                  admins.map((a) => (
+                    <div className="roster-item" key={a.id}>
+                      <div className="roster-row" style={{ cursor: "default" }}>
+                        <span className="roster-info">
+                          <span className="roster-name">
+                            {a.username || "(pending setup)"}{" "}
+                            <span
+                              style={{
+                                fontSize: "0.7rem",
+                                color: a.status === "active" ? "var(--accent)" : "#e0b84c",
+                                marginLeft: 6,
+                              }}
+                            >
+                              {a.status === "active" ? "ADMIN" : "PENDING"}
                             </span>
-                            <span className="roster-phone">{a.email}</span>
                           </span>
+                          <span className="roster-phone">{a.email}</span>
+                        </span>
+                        {role === "owner" && (
                           <button
                             className="btn btn-secondary"
                             style={{
@@ -699,10 +704,11 @@ export default function AdminPage() {
                           >
                             {adminBusyId === a.id ? <span className="spinner" /> : <i className="fas fa-trash" />}
                           </button>
-                        </div>
+                        )}
                       </div>
-                    ))
-                  ))}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
