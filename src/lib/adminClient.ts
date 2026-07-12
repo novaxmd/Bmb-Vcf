@@ -3,10 +3,21 @@
 // by /api/admin/* routes via verifyAdminToken().
 
 const STORAGE_KEY = "bmb_admin_token";
+const USERNAME_KEY = "bmb_admin_username";
 
 export function saveAdminToken(token: string): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(STORAGE_KEY, token);
+}
+
+export function saveAdminUsername(username: string): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(USERNAME_KEY, username);
+}
+
+export function getAdminUsername(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(USERNAME_KEY);
 }
 
 export function getAdminToken(): string | null {
@@ -17,6 +28,7 @@ export function getAdminToken(): string | null {
 export function clearAdminToken(): void {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(STORAGE_KEY);
+  window.localStorage.removeItem(USERNAME_KEY);
 }
 
 // Best-effort local check (does not verify signature/expiry cryptographically —
