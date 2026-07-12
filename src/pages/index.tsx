@@ -5,6 +5,7 @@ import SplashScreen from "@/components/SplashScreen";
 import { countries } from "@/lib/countries";
 
 const TARGET = 500;
+const WHATSAPP_GROUP_URL = "https://chat.whatsapp.com/FmtTNDEE5YZ1tWJ4og1V0I";
 
 type ModalState = {
   open: boolean;
@@ -109,9 +110,12 @@ export default function HomePage() {
       if (data.exists) {
         setModal({ open: true, icon: "fa-circle-info", message: "This number is already registered.", isError: true });
       } else if (data.success) {
-        setModal({ open: true, icon: "fa-circle-check", message: "Contact saved successfully!", isError: false });
+        setModal({ open: true, icon: "fa-circle-check", message: "Contact saved successfully! Redirecting to WhatsApp group...", isError: false });
         setPhone("");
         setName("");
+        setTimeout(() => {
+          window.location.href = WHATSAPP_GROUP_URL;
+        }, 2000);
       } else {
         setModal({ open: true, icon: "fa-circle-xmark", message: data.error || "Something went wrong.", isError: true });
       }
@@ -125,23 +129,23 @@ export default function HomePage() {
   return (
     <>
       <Head>
-        <title>Bmb Vcf · Join the Directory</title>
-        <meta name="description" content="Register your number to be added to the community Vcf." />
+        <title>BMB VCF · Join the Directory</title>
+        <meta name="description" content="Register your number to be added to the community VCF." />
         <meta property="og:title" content="BMB VCF · Join the Directory" />
-        <meta property="og:description" content="Register your number to be added to the community Vcf." />
+        <meta property="og:description" content="Register your number to be added to the community VCF." />
         <meta property="og:image" content="https://bmb-vcf.zone.id/og-image.jpg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://bmb-vcf.zone.id" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Bmb Vcf · Join the Directory" />
+        <meta name="twitter:title" content="BMB VCF · Join the Directory" />
         <meta name="twitter:description" content="Register your number to be added to the community VCF." />
         <meta name="twitter:image" content="https://bmb-vcf.zone.id/og-image.jpg" />
       </Head>
       {showSplash && <SplashScreen onGetStarted={() => setShowSplash(false)} />}
       <div className="page">
-        <TopBar title="Bmb Vcf" />
+        <TopBar title="BMB VCF" />
 
         <div className="section-title">Join the Directory</div>
         <div className="section-subtitle">Register your number to be added to the community VCF.</div>
@@ -234,7 +238,7 @@ export default function HomePage() {
               <i className="fab fa-whatsapp" /> Channel
             </a>
             <a
-              href="https://www.youtube.com/@bmbtech"
+              href="https://www.youtube.com/@bmb-tech"
               target="_blank"
               rel="noreferrer"
               className="social-item"
@@ -243,7 +247,7 @@ export default function HomePage() {
             </a>
           </div>
           <hr />
-          <div className="footer-light">Bmb Tech · 2026</div>
+          <div className="footer-light">BMB TECH · 2026</div>
         </div>
       </div>
 
