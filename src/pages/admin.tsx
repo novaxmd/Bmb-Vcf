@@ -8,6 +8,8 @@ import {
   adminFetch,
   isAdminSession,
   getSessionRole,
+  saveAdminUsername,
+  getAdminUsername,
 } from "@/lib/adminClient";
 import type { Contact } from "@/types";
 
@@ -23,6 +25,8 @@ export default function AdminPage() {
   const [unlocked, setUnlocked] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [role, setRole] = useState<"owner" | "admin" | null>(null);
+  const [loggedInUsername, setLoggedInUsername] = useState("");
+  const [view, setView] = useState<"dashboard" | "contacts">("dashboard");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -74,6 +78,7 @@ export default function AdminPage() {
     if (isAdminSession()) {
       setUnlocked(true);
       setRole(getSessionRole());
+      setLoggedInUsername(getAdminUsername() || "");
       fetchContacts("");
       if (getSessionRole() === "owner") fetchAdmins();
     }
@@ -184,9 +189,11 @@ export default function AdminPage() {
       const data = await res.json();
       if (data.success && data.token) {
         saveAdminToken(data.token);
+        saveAdminUsername(username.trim());
         setUnlocked(true);
         const newRole = getSessionRole();
         setRole(newRole);
+        setLoggedInUsername(username.trim());
         setUsername("");
         setPassword("");
         fetchContacts("");
@@ -207,6 +214,8 @@ export default function AdminPage() {
     setContacts([]);
     setRole(null);
     setAdmins([]);
+    setLoggedInUsername("");
+    setView("dashboard");
   };
 
   const handleDownload = async (kind: "vcf" | "pdf") => {
@@ -462,242 +471,275 @@ export default function AdminPage() {
       <div className="page">
         <TopBar title="BMB VCF" />
 
-        <div className="card-header">
-          <div>
-            <div className="section-title" style={{ marginBottom: 2 }}>
-              Command Center
-            </div>
-            <div className="section-subtitle" style={{ marginBottom: 0 }}>
-              Welcome back, admin
-            </div>
-          </div>
-          <button className="btn btn-ghost-purple" onClick={handleLogout}>
-            <i className="fas fa-right-from-bracket" /> Logout
-          </button>
-        </div>
-
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon">
-              <i className="fas fa-address-book" />
-            </div>
-            <div className="stat-label">Total Registered</div>
-            <div className="stat-value">{contacts.length}</div>
-            <div className="stat-foot">contacts in directory</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">
-              <i className="fas fa-shield-halved" />
-            </div>
-            <div className="stat-label">Access</div>
-            <div className="stat-value" style={{ fontSize: "1.2rem" }}>
-              Admin
-            </div>
-            <div className="stat-foot">session active</div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-header">
-            <span className="card-label">Exports</span>
-          </div>
-          <div className="btn-group">
-            <button className="btn btn-primary" onClick={() => handleDownload("vcf")}>
-              <i className="fas fa-file-arrow-down" /> Download VCF
-            </button>
-            <button className="btn btn-secondary" onClick={() => handleDownload("pdf")}>
-              <i className="fas fa-file-pdf" /> Download PDF
-            </button>
-          </div>
-          <div className="btn-group" style={{ marginTop: 10 }}>
-            <button
-              className="btn btn-ghost-purple btn-block"
-              onClick={handleDedupe}
-              disabled={dedupeRunning}
-            >
-              {dedupeRunning ? (
-                <>
-                  <span className="spinner" /> Removing duplicates...
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-broom" /> Remove Duplicate Numbers
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-header">
-            <span className="card-label">Registered Contacts</span>
-          </div>
-          <div className="phone-row" style={{ marginBottom: 12 }}>
-            <input
-              type="text"
-              className="input-modern"
-              style={{ marginBottom: 0 }}
-              placeholder="Search by name or phone..."
-              value={search}
-              onChange={(e) => handleSearchChange(e.target.value)}
-            />
-            {search.trim() !== "" && (
-              <button
-                className="btn btn-ghost-purple"
-                style={{ flex: "0 0 auto" }}
-                onClick={clearSearch}
-                title="Clear search and show all"
-              >
-                <i className="fas fa-xmark" />
+        {view === "contacts" ? (
+          <>
+            <div className="card-header">
+              <button className="btn btn-ghost-purple" onClick={() => setView("dashboard")}>
+                <i className="fas fa-arrow-left" /> Back
               </button>
-            )}
-          </div>
-
-          {listError && <div className="error-text">{listError}</div>}
-
-          {loadingList ? (
-            <div className="section-subtitle" style={{ textAlign: "center" }}>
-              <span className="spinner" /> Loading...
+              <div style={{ textAlign: "right" }}>
+                <div className="section-title" style={{ marginBottom: 2, fontSize: "1.1rem" }}>
+                  Registered Contacts
+                </div>
+                <div className="section-subtitle" style={{ marginBottom: 0 }}>
+                  {contacts.length} total
+                </div>
+              </div>
             </div>
-          ) : contacts.length === 0 ? (
-            <div className="section-subtitle" style={{ textAlign: "center" }}>
-              No contacts found.
+
+            <div className="card">
+              <div className="phone-row" style={{ marginBottom: 12 }}>
+                <input
+                  type="text"
+                  className="input-modern"
+                  style={{ marginBottom: 0 }}
+                  placeholder="Search by name or phone..."
+                  value={search}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                />
+                {search.trim() !== "" && (
+                  <button
+                    className="btn btn-ghost-purple"
+                    style={{ flex: "0 0 auto" }}
+                    onClick={clearSearch}
+                    title="Clear search and show all"
+                  >
+                    <i className="fas fa-xmark" />
+                  </button>
+                )}
+              </div>
+
+              {listError && <div className="error-text">{listError}</div>}
+
+              {loadingList ? (
+                <div className="section-subtitle" style={{ textAlign: "center" }}>
+                  <span className="spinner" /> Loading...
+                </div>
+              ) : contacts.length === 0 ? (
+                <div className="section-subtitle" style={{ textAlign: "center" }}>
+                  No contacts found.
+                </div>
+              ) : (
+                <div className="roster-list">
+                  {contacts.map((c, i) => {
+                    const rowId = c.id ?? c.phone;
+                    const isExpanded = expandedId === rowId;
+                    const isBusy = rowBusyId !== null && rowBusyId === c.id;
+                    return (
+                      <div className="roster-item" key={rowId}>
+                        <button
+                          type="button"
+                          className="roster-row"
+                          onClick={() => toggleExpand(c)}
+                        >
+                          <span className="roster-index">{i + 1}</span>
+                          <span className="roster-info">
+                            <span className="roster-name">{c.name || "—"}</span>
+                            <span className="roster-phone">{c.phone}</span>
+                          </span>
+                          <i className={`fas fa-chevron-${isExpanded ? "up" : "down"}`} />
+                        </button>
+
+                        {isExpanded && (
+                          <div className="roster-details">
+                            <input
+                              type="text"
+                              className="input-modern"
+                              placeholder="Name"
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                            />
+                            <input
+                              type="text"
+                              className="input-modern"
+                              placeholder="Phone"
+                              value={editPhone}
+                              onChange={(e) => setEditPhone(e.target.value)}
+                            />
+                            <div className="btn-group">
+                              <button
+                                className="btn btn-primary"
+                                onClick={() => c.id !== undefined && saveEdit(c.id)}
+                                disabled={isBusy}
+                              >
+                                {isBusy ? <span className="spinner" /> : <i className="fas fa-check" />} Save
+                              </button>
+                              <button
+                                className="btn btn-secondary"
+                                style={{ borderColor: "#ff6b6b", color: "#ff6b6b" }}
+                                onClick={() => c.id !== undefined && handleDelete(c.id)}
+                                disabled={isBusy}
+                              >
+                                {isBusy ? <span className="spinner" /> : <i className="fas fa-trash" />} Delete
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="roster-list">
-              {contacts.map((c, i) => {
-                const rowId = c.id ?? c.phone;
-                const isExpanded = expandedId === rowId;
-                const isBusy = rowBusyId !== null && rowBusyId === c.id;
-                return (
-                  <div className="roster-item" key={rowId}>
-                    <button
-                      type="button"
-                      className="roster-row"
-                      onClick={() => toggleExpand(c)}
-                    >
-                      <span className="roster-index">{i + 1}</span>
-                      <span className="roster-info">
-                        <span className="roster-name">{c.name || "—"}</span>
-                        <span className="roster-phone">{c.phone}</span>
+          </>
+        ) : (
+          <>
+            <div className="card-header">
+              <div>
+                <div className="section-title" style={{ marginBottom: 2 }}>
+                  Command Center
+                </div>
+                <div className="section-subtitle" style={{ marginBottom: 0 }}>
+                  Welcome back, {loggedInUsername || (role === "owner" ? "owner" : "admin")}
+                </div>
+              </div>
+              <button className="btn btn-ghost-purple" onClick={handleLogout}>
+                <i className="fas fa-right-from-bracket" /> Logout
+              </button>
+            </div>
+
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-icon">
+                  <i className="fas fa-address-book" />
+                </div>
+                <div className="stat-label">Total Registered</div>
+                <div className="stat-value">{contacts.length}</div>
+                <div className="stat-foot">contacts in directory</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">
+                  <i className="fas fa-shield-halved" />
+                </div>
+                <div className="stat-label">Access</div>
+                <div className="stat-value" style={{ fontSize: "1.2rem" }}>
+                  {role === "owner" ? "Owner" : "Admin"}
+                </div>
+                <div className="stat-foot">session active</div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-header">
+                <span className="card-label">Team</span>
+              </div>
+
+              {role === "owner" && (
+                <div className="phone-row" style={{ marginBottom: 12 }}>
+                  <input
+                    type="email"
+                    className="input-modern"
+                    style={{ marginBottom: 0 }}
+                    placeholder="Admin's Gmail address"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleInvite()}
+                  />
+                  <button
+                    className="btn btn-primary"
+                    style={{ flex: "0 0 auto" }}
+                    onClick={handleInvite}
+                    disabled={invitingAdmin}
+                  >
+                    {invitingAdmin ? <span className="spinner" /> : <i className="fas fa-paper-plane" />}
+                  </button>
+                </div>
+              )}
+
+              <div className="roster-list">
+                {/* Owner is always shown first, from the current session */}
+                <div className="roster-item">
+                  <div className="roster-row" style={{ cursor: "default" }}>
+                    <span className="roster-info">
+                      <span className="roster-name">
+                        {role === "owner" ? loggedInUsername || "Owner" : "Owner"}{" "}
+                        <span style={{ fontSize: "0.7rem", color: "var(--accent)", marginLeft: 6 }}>
+                          OWNER
+                        </span>
                       </span>
-                      <i className={`fas fa-chevron-${isExpanded ? "up" : "down"}`} />
-                    </button>
+                      <span className="roster-phone">Full access</span>
+                    </span>
+                  </div>
+                </div>
 
-                    {isExpanded && (
-                      <div className="roster-details">
-                        <input
-                          type="text"
-                          className="input-modern"
-                          placeholder="Name"
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                        />
-                        <input
-                          type="text"
-                          className="input-modern"
-                          placeholder="Phone"
-                          value={editPhone}
-                          onChange={(e) => setEditPhone(e.target.value)}
-                        />
-                        <div className="btn-group">
-                          <button
-                            className="btn btn-primary"
-                            onClick={() => c.id !== undefined && saveEdit(c.id)}
-                            disabled={isBusy}
-                          >
-                            {isBusy ? <span className="spinner" /> : <i className="fas fa-check" />} Save
-                          </button>
+                {role === "owner" &&
+                  (loadingAdmins ? (
+                    <div className="section-subtitle" style={{ textAlign: "center", padding: "10px 0" }}>
+                      <span className="spinner" /> Loading admins...
+                    </div>
+                  ) : (
+                    admins.map((a) => (
+                      <div className="roster-item" key={a.id}>
+                        <div className="roster-row" style={{ cursor: "default" }}>
+                          <span className="roster-info">
+                            <span className="roster-name">
+                              {a.username || "(pending setup)"}{" "}
+                              <span
+                                style={{
+                                  fontSize: "0.7rem",
+                                  color: a.status === "active" ? "var(--accent)" : "#e0b84c",
+                                  marginLeft: 6,
+                                }}
+                              >
+                                {a.status === "active" ? "ACTIVE" : "PENDING"}
+                              </span>
+                            </span>
+                            <span className="roster-phone">{a.email}</span>
+                          </span>
                           <button
                             className="btn btn-secondary"
-                            style={{ borderColor: "#ff6b6b", color: "#ff6b6b" }}
-                            onClick={() => c.id !== undefined && handleDelete(c.id)}
-                            disabled={isBusy}
+                            style={{
+                              flex: "0 0 auto",
+                              borderColor: "#ff6b6b",
+                              color: "#ff6b6b",
+                              padding: "6px 10px",
+                            }}
+                            onClick={() => handleRemoveAdmin(a)}
+                            disabled={adminBusyId === a.id}
                           >
-                            {isBusy ? <span className="spinner" /> : <i className="fas fa-trash" />} Delete
+                            {adminBusyId === a.id ? <span className="spinner" /> : <i className="fas fa-trash" />}
                           </button>
                         </div>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+                    ))
+                  ))}
+              </div>
             </div>
-          )}
-        </div>
 
-        {role === "owner" && (
-          <div className="card">
-            <div className="card-header">
-              <span className="card-label">Manage Admins</span>
-            </div>
-            <div className="phone-row" style={{ marginBottom: 12 }}>
-              <input
-                type="email"
-                className="input-modern"
-                style={{ marginBottom: 0 }}
-                placeholder="Admin's Gmail address"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleInvite()}
-              />
-              <button
-                className="btn btn-primary"
-                style={{ flex: "0 0 auto" }}
-                onClick={handleInvite}
-                disabled={invitingAdmin}
-              >
-                {invitingAdmin ? <span className="spinner" /> : <i className="fas fa-paper-plane" />}
+            <div className="card">
+              <div className="card-header">
+                <span className="card-label">Contacts</span>
+              </div>
+              <button className="btn btn-primary btn-block" onClick={() => setView("contacts")}>
+                <i className="fas fa-address-book" /> View Contacts
               </button>
+              <div className="btn-group" style={{ marginTop: 10 }}>
+                <button className="btn btn-secondary" onClick={() => handleDownload("vcf")}>
+                  <i className="fas fa-file-arrow-down" /> Download VCF
+                </button>
+                <button className="btn btn-secondary" onClick={() => handleDownload("pdf")}>
+                  <i className="fas fa-file-pdf" /> Download PDF
+                </button>
+              </div>
+              <div className="btn-group" style={{ marginTop: 10 }}>
+                <button
+                  className="btn btn-ghost-purple btn-block"
+                  onClick={handleDedupe}
+                  disabled={dedupeRunning}
+                >
+                  {dedupeRunning ? (
+                    <>
+                      <span className="spinner" /> Removing duplicates...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-broom" /> Remove Duplicate Numbers
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-
-            {loadingAdmins ? (
-              <div className="section-subtitle" style={{ textAlign: "center" }}>
-                <span className="spinner" /> Loading...
-              </div>
-            ) : admins.length === 0 ? (
-              <div className="section-subtitle" style={{ textAlign: "center" }}>
-                No admins invited yet.
-              </div>
-            ) : (
-              <div className="roster-list">
-                {admins.map((a) => (
-                  <div className="roster-item" key={a.id}>
-                    <div className="roster-row" style={{ cursor: "default" }}>
-                      <span className="roster-info">
-                        <span className="roster-name">
-                          {a.username || "(pending setup)"}{" "}
-                          <span
-                            style={{
-                              fontSize: "0.7rem",
-                              color: a.status === "active" ? "var(--accent)" : "#e0b84c",
-                              marginLeft: 6,
-                            }}
-                          >
-                            {a.status === "active" ? "ACTIVE" : "PENDING"}
-                          </span>
-                        </span>
-                        <span className="roster-phone">{a.email}</span>
-                      </span>
-                      <button
-                        className="btn btn-secondary"
-                        style={{
-                          flex: "0 0 auto",
-                          borderColor: "#ff6b6b",
-                          color: "#ff6b6b",
-                          padding: "6px 10px",
-                        }}
-                        onClick={() => handleRemoveAdmin(a)}
-                        disabled={adminBusyId === a.id}
-                      >
-                        {adminBusyId === a.id ? <span className="spinner" /> : <i className="fas fa-trash" />}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          </>
         )}
 
         {toast && (
