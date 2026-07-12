@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import TopBar from "@/components/TopBar";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function AcceptInvitePage() {
   const router = useRouter();
@@ -94,16 +95,12 @@ export default function AcceptInvitePage() {
                 onChange={(e) => setUsername(e.target.value)}
                 autoComplete="off"
               />
-              <input
-                type="password"
-                className="input-modern"
+              <PasswordInput
                 placeholder="Choose a password (min 8 characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <input
-                type="password"
-                className="input-modern"
+              <PasswordInput
                 placeholder="Confirm password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
