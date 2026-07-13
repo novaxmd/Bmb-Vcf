@@ -1,6 +1,6 @@
 # BMB VCF — Contacts Views Status 📱
 
-![Logo](./public/logo.png)
+![Logo](./public/bmb.jpg)
 
 ```
 https://vcf.bmbtech.site
@@ -73,6 +73,9 @@ signature so session tokens can't be forged even if someone guesses the admin
 password format.
 
 ## Running locally
+
+![Logo](./public/logo.png)
+
 
 ```bash
 npm install
