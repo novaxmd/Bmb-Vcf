@@ -9,7 +9,7 @@ type ResultState = {
 } | null;
 
 export default function SearchPage() {
-  const [phone, setPhone] = useState("");
+  const [query, setQuery] = useState("");
   const [error, setError] = useState("");
   const [checking, setChecking] = useState(false);
   const [result, setResult] = useState<ResultState>(null);
@@ -18,9 +18,9 @@ export default function SearchPage() {
     setError("");
     setResult(null);
 
-    const trimmed = phone.trim();
+    const trimmed = query.trim();
     if (!trimmed) {
-      setError("Enter your phone number to check.");
+      setError("Enter a name or phone number to check.");
       return;
     }
 
@@ -29,7 +29,7 @@ export default function SearchPage() {
       const res = await fetch("/api/check-number", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: trimmed }),
+        body: JSON.stringify({ query: trimmed }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -55,17 +55,17 @@ export default function SearchPage() {
 
         <div className="section-title">Check Your Status</div>
         <div className="section-subtitle">
-          Enter your phone number to see if you're already registered in the directory.
+          Enter your name or phone number to see if you're already registered in the directory.
         </div>
 
         <div className="card">
           <input
-            type="tel"
+            type="text"
             className="input-modern"
-            placeholder="Phone number with country code (e.g. +255712345678)"
-            value={phone}
+            placeholder="Your name or phone number"
+            value={query}
             onChange={(e) => {
-              setPhone(e.target.value);
+              setQuery(e.target.value);
               setResult(null);
               setError("");
             }}
@@ -81,7 +81,7 @@ export default function SearchPage() {
               </>
             ) : (
               <>
-                <i className="fas fa-magnifying-glass" /> Check Number
+                <i className="fas fa-magnifying-glass" /> Search
               </>
             )}
           </button>
@@ -90,8 +90,8 @@ export default function SearchPage() {
             <div className="search-result search-result-success">
               <i className="fas fa-circle-check" />
               <div>
-                <p className="search-result-title">You're already registered!</p>
-                <p className="search-result-subtitle">This number is part of the BMB VCF directory.</p>
+                <p className="search-result-title">Found — you're already registered!</p>
+                <p className="search-result-subtitle">This name or number is part of the BMB VCF directory.</p>
               </div>
             </div>
           )}
@@ -100,8 +100,8 @@ export default function SearchPage() {
             <div className="search-result search-result-info">
               <i className="fas fa-circle-info" />
               <div>
-                <p className="search-result-title">Not registered yet</p>
-                <p className="search-result-subtitle">This number hasn't joined the directory.</p>
+                <p className="search-result-title">Not found</p>
+                <p className="search-result-subtitle">No match in the directory yet.</p>
               </div>
               <Link href="/" className="btn btn-primary search-result-cta">
                 Register Now
