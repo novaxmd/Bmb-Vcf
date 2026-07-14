@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
+import Link from "next/link";
 import TopBar from "@/components/TopBar";
 import SplashScreen from "@/components/SplashScreen";
 import { countries } from "@/lib/countries";
@@ -217,14 +218,9 @@ export default function HomePage() {
               <button type="submit" className="btn btn-primary" disabled={submitting}>
                 <i className="fas fa-cloud-upload-alt" /> {submitting ? "Saving..." : "Save"}
               </button>
-              <a
-                href="https://chat.whatsapp.com/FmtTNDEE5YZ1tWJ4og1V0I"
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn-secondary"
-              >
-                <i className="fab fa-whatsapp" /> Group
-              </a>
+              <Link href="/search" className="btn btn-secondary">
+                <i className="fas fa-magnifying-glass" /> Search
+              </Link>
             </div>
           </form>
 
