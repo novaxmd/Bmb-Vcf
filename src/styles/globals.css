@@ -1053,3 +1053,56 @@ table.roster tr:hover td {
   animation: splash-fade-in 0.3s ease-out;
   min-width: 180px;
 }
+
+/* Public search page - result banners */
+.search-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid;
+}
+
+.search-result i {
+  font-size: 1.3rem;
+  margin-top: 2px;
+}
+
+.search-result-title {
+  font-weight: 700;
+  color: var(--accent-pale);
+  margin: 0 0 4px 0;
+}
+
+.search-result-subtitle {
+  font-size: 0.85rem;
+  color: var(--accent-light);
+  margin: 0;
+}
+
+.search-result-success {
+  border-color: var(--accent);
+  background: rgba(57, 255, 20, 0.06);
+}
+
+.search-result-success i {
+  color: var(--accent);
+}
+
+.search-result-info {
+  border-color: #e0b84c;
+  background: rgba(224, 184, 76, 0.06);
+  flex-wrap: wrap;
+}
+
+.search-result-info i {
+  color: #e0b84c;
+}
+
+.search-result-cta {
+  flex: 0 0 100%;
+  margin-top: 10px;
+  text-align: center;
+}
